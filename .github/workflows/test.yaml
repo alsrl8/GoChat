@@ -3,7 +3,7 @@ name: Test SSH to Local
 on:
   workflow_dispatch:  # 수동 실행용
   push:
-    branches: [ "main" ]
+    branches: [ "dev" ]
 
 jobs:
   test:
