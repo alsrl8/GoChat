@@ -9,7 +9,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: SSH Test to B
+      - name: SSH Test to Local
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.LOCAL_HOST }}
