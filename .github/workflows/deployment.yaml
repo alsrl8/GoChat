@@ -1,0 +1,43 @@
+name: Build and Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "deploy", "dev" ]
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}/go-chat-server:${{ github.sha }}
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Docker Login (GHCR)
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Compute version
+        id: ver
+        run: echo "tag=$(git rev-parse --short=8 HEAD)" >> $GITHUB_ENV
+      - name: Build and push Docker image
+        run: |
+          docker build -t $IMAGE:${{ steps.ver.outputs.tag }} -t $IMAGE:latest .
+          docker push $IMAGE:${{ steps.ver.outputs.tag }}
+          docker push $IMAGE:latest
+
+#  test:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: SSH Test to Local
+#        uses: appleboy/ssh-action@v1.0.3
+#        with:
+#          host: ${{ secrets.LOCAL_HOST }}
+#          port: ${{ secrets.LOCAL_PORT }}
+#          username: ${{ secrets.LOCAL_USERNAME }}
+#          key: ${{ secrets.LOCAL_KEY }}
+#          script: |
+#            powershell -ExecutionPolicy Bypass -File C:\Workspace\example.ps1
