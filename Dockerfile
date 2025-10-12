@@ -6,7 +6,7 @@ WORKDIR /app
 COPY . .
 
 # Build (static where possible)
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o app ./
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o server ./
 
 # Runtime image
 FROM alpine:3.20
