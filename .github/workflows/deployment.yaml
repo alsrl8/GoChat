@@ -22,7 +22,7 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: Compute version
         id: ver
-        run: echo "tag=$(git rev-parse --short=8 HEAD)" >> $GITHUB_ENV
+        run: echo "tag=$(git rev-parse --short=8 HEAD)" >> "$GITHUB_OUTPUT"
       - name: Build and push Docker image
         run: |
           docker build -t $IMAGE:${{ steps.ver.outputs.tag }} -t $IMAGE:latest .
