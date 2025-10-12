@@ -18,16 +18,23 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Docker Login (GHCR)
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
       - name: Compute version
-        id: ver
-        run: echo "tag=$(git rev-parse --short=8 HEAD)" >> "$GITHUB_OUTPUT"
+        id: vars
+        run: |
+          IMAGE_NAME=$(echo "ghcr.io/${{ github.repository }}/go-chat-server" | tr '[:upper:]' '[:lower:]')
+          TAG=$(git rev-parse --short=8 HEAD)
+          echo "image=$IMAGE_NAME" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
       - name: Build and push Docker image
         run: |
-          docker build -t $IMAGE:${{ steps.ver.outputs.tag }} -t $IMAGE:latest .
-          docker push $IMAGE:${{ steps.ver.outputs.tag }}
-          docker push $IMAGE:latest
+          docker build -t "${{ steps.vars.outputs.image }}:${{ steps.vars.outputs.tag }}" -t "${{ steps.vars.outputs.image }}:latest" .
+          docker push "${{ steps.vars.outputs.image }}:${{ steps.vars.outputs.tag }}"
+          docker push "${{ steps.vars.outputs.image }}:latest"
 
 #  test:
 #    runs-on: ubuntu-latest
