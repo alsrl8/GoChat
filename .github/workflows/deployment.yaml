@@ -48,14 +48,4 @@ jobs:
           username: ${{ secrets.LOCAL_USERNAME }}
           key: ${{ secrets.LOCAL_KEY }}
           script: |
-            wsl -d Ubuntu -- bash -c "cat > /tmp/deploy.sh << 'EOFSCRIPT'
-            #!/bin/bash
-            set -euo pipefail
-            echo \"\$1\" | docker login ghcr.io -u \"\$2\" --password-stdin
-            cd /opt/go-chat-server
-            docker compose pull
-            docker compose up -d
-            EOFSCRIPT
-            "
-            wsl -d Ubuntu -- chmod +x /tmp/deploy.sh
-            wsl -d Ubuntu -- bash /tmp/deploy.sh '${{ secrets.GITHUB_TOKEN }}' '${{ github.actor }}'
+            wsl -d Ubuntu -- bash -c "echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin && cd /opt/go-chat-server && docker compose pull && docker compose up -d"
