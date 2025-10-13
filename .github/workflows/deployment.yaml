@@ -43,6 +43,10 @@ jobs:
       - name: Deploy to B via WSL
         uses: appleboy/ssh-action@v1.0.3
         with:
+          host: ${{ secrets.LOCAL_HOST }}
+          port: ${{ secrets.LOCAL_PORT }}
+          username: ${{ secrets.LOCAL_USERNAME }}
+          key: ${{ secrets.LOCAL_KEY }}
           script: |
             wsl -d Ubuntu -- bash -lc "set -euo pipefail; \
               TOKEN='${{ secrets.GITHUB_TOKEN }}'; USER='${{ github.actor }}'; \
