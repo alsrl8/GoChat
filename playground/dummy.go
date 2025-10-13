@@ -3,7 +3,9 @@ package playground
 import (
 	"GoChatServer/utils"
 	"fmt"
+	"log"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"time"
 )
@@ -41,4 +43,13 @@ func WriteTextFile() error {
 	}
 
 	return nil
+}
+
+func WaitForInterruptSignal() {
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt)
+
+	log.Println("waiting for interrupt signal")
+	<-sigChan
+	log.Println("interrupt signal received")
 }

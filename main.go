@@ -12,5 +12,5 @@ func main() {
 	}
 	log.Println("done")
 
-	select {}
+	playground.WaitForInterruptSignal()
 }
