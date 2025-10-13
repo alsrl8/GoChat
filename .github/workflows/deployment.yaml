@@ -48,9 +48,4 @@ jobs:
           username: ${{ secrets.LOCAL_USERNAME }}
           key: ${{ secrets.LOCAL_KEY }}
           script: |
-            wsl -d Ubuntu -- bash -lc "set -euo pipefail; \
-              TOKEN='${{ secrets.GITHUB_TOKEN }}'; USER='${{ github.actor }}'; \
-              printf '%s' \"$TOKEN\" | docker login ghcr.io -u \"$USER\" --password-stdin; \
-              cd /opt/go-chat-server; \
-              docker compose pull; \
-              docker compose up -d"
+            wsl -d Ubuntu -- bash -lc 'set -euo pipefail; TOKEN="${{ secrets.GITHUB_TOKEN }}"; USER="${{ github.actor }}"; printf %s "$TOKEN" | docker login ghcr.io -u "$USER" --password-stdin; cd /opt/go-chat-server; docker compose pull; docker compose up -d'
