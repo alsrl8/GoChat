@@ -53,10 +53,4 @@ jobs:
             $GHUSER     = '${{ github.actor }}'
             $TOKEN      = '${{ secrets.GITHUB_TOKEN }}'
             
-            wsl -d $WSL_DISTRO -- bash -lc "
-              set -euo pipefail
-              echo '$TOKEN' | docker login ghcr.io -u '$GHUSER' --password-stdin
-              cd /opt/go-chat-server
-              docker compose pull
-              docker compose up -d
-            "
+            wsl -d Ubuntu -- bash -lc "set -euo pipefail; echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin; cd /opt/go-chat-server; docker compose pull; docker compose up -d"
