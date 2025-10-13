@@ -36,15 +36,27 @@ jobs:
           docker push "${{ steps.vars.outputs.image }}:${{ steps.vars.outputs.tag }}"
           docker push "${{ steps.vars.outputs.image }}:latest"
 
-#  test:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: SSH Test to Local
-#        uses: appleboy/ssh-action@v1.0.3
-#        with:
-#          host: ${{ secrets.LOCAL_HOST }}
-#          port: ${{ secrets.LOCAL_PORT }}
-#          username: ${{ secrets.LOCAL_USERNAME }}
-#          key: ${{ secrets.LOCAL_KEY }}
-#          script: |
-#            powershell -ExecutionPolicy Bypass -File C:\Workspace\example.ps1
+  deploy-wsl:
+    needs: docker-build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to localhost via WSL
+        uses: appleboy/ssh-action@v0.1.4
+        with:
+          host: ${{ secrets.LOCAL_HOST }}
+          port: ${{ secrets.LOCAL_PORT }}
+          username: ${{ secrets.LOCAL_USERNAME }}
+          key: ${{ secrets.LOCAL_KEY }}
+          script: |
+            $ErrorActionPreference='Stop'
+            $WSL_DISTRO = 'Ubuntu'
+            $GHUSER     = '${{ github.actor }}'
+            $TOKEN      = '${{ secrets.GITHUB_TOKEN }}'
+            
+            wsl -d $WSL_DISTRO -- bash -lc "
+              set -euo pipefail
+              echo '$TOKEN' | docker login ghcr.io -u '$GHUSER' --password-stdin
+              cd /opt/go-chat-server
+              docker compose pull
+              docker compose up -d
+            "
