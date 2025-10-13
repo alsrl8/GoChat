@@ -48,4 +48,12 @@ jobs:
           username: ${{ secrets.LOCAL_USERNAME }}
           key: ${{ secrets.LOCAL_KEY }}
           script: |
-            wsl -d Ubuntu -- bash -c "echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin && cd /opt/go-chat-server && docker compose pull && docker compose up -d"
+            wsl -d Ubuntu -- bash << 'EOF'
+            mkdir -p ~/.docker
+            echo '{"credsStore":""}' > ~/.docker/config.json
+            echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin
+            cd /opt/go-chat-server
+            docker compose pull
+            docker compose up -d
+            docker logout ghcr.io
+            EOF
