@@ -31,6 +31,8 @@ func WriteTextFile() error {
 		return fmt.Errorf("error writing file: %v", err)
 	}
 
+	fmt.Printf("Creating file: %s\n", filename)
+
 	return nil
 }
 
