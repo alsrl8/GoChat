@@ -1,7 +1,6 @@
 package playground
 
 import (
-	"GoChatServer/utils"
 	"fmt"
 	"log"
 	"os"
@@ -11,19 +10,9 @@ import (
 )
 
 func WriteTextFile() error {
-	var targetDir string
-	if utils.IsWindows() {
-		userHome, err := os.UserHomeDir()
-		if err != nil {
-			return fmt.Errorf("error getting user home directory: %v", err)
-		}
-		targetDir = filepath.Join(userHome, "Desktop")
-	} else {
-		cwd, err := os.Getwd()
-		if err != nil {
-			return fmt.Errorf("error getting working directory: %v", err)
-		}
-		targetDir = cwd
+	targetDir := os.Getenv("FILE_OUTPUT")
+	if targetDir == "" {
+		return fmt.Errorf("FILE_OUTPUT environment variable is not set")
 	}
 
 	baseFilename := "example.txt"
