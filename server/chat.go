@@ -37,7 +37,7 @@ func (s *ChatServer) Start() error {
 	s.listener = ln
 	log.Printf("chat server listening on %s", s.addr)
 
-	// Handle Ctrl+C for graceful shutdown inside Start for simplicity.
+	// Handle Ctrl+C for a graceful shutdown inside Start for simplicity.
 	sigC := make(chan os.Signal, 1)
 	signal.Notify(sigC, os.Interrupt)
 	go func() {
@@ -51,7 +51,7 @@ func (s *ChatServer) Start() error {
 		if err != nil {
 			select {
 			case <-s.shutdownC:
-				return nil // listener closed due to shutdown
+				return nil // listener closed due to shut down
 			default:
 				// transient accept error
 				return fmt.Errorf("accept error: %w", err)
