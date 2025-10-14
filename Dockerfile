@@ -6,14 +6,14 @@ WORKDIR /app
 COPY . .
 
 # Build (static where possible)
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o server ./
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o chat-server ./
 
 # Runtime image
 FROM alpine:3.20
 WORKDIR /app
 
 # Copy binary
-COPY --from=builder /app/server /app/server
+COPY --from=builder /app/chat-server /app/chat-server
 
 # Run the application
-ENTRYPOINT ["/app/server"]
+ENTRYPOINT ["/app/chat-server"]
