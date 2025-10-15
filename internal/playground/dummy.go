@@ -24,7 +24,7 @@ func WriteTextFile() error {
 		if _, err := os.Stat(filePath); os.IsNotExist(err) {
 			break
 		}
-		filename = fmt.Sprintf("example(%d).txt", i)
+		filename = fmt.Sprintf("example_%d.txt", i)
 	}
 
 	if err := os.WriteFile(filepath.Join(targetDir, filename), []byte(content), 0644); err != nil {
