@@ -40,11 +40,34 @@ jobs:
     needs: docker-build
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to B via WSL
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Prepare SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.LOCAL_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "${{ secrets.LOCAL_PORT }}" "${{ secrets.LOCAL_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy to local via WSL (retry 5x, wait 5m)
+        uses: nick-fields/retry@v3
+        env:
+          LOCAL_HOST: ${{ secrets.LOCAL_HOST }}
+          LOCAL_PORT: ${{ secrets.LOCAL_PORT }}
+          LOCAL_USERNAME: ${{ secrets.LOCAL_USERNAME }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
         with:
-          host: ${{ secrets.LOCAL_HOST }}
-          port: ${{ secrets.LOCAL_PORT }}
-          username: ${{ secrets.LOCAL_USERNAME }}
-          key: ${{ secrets.LOCAL_KEY }}
-          script: wsl -d Ubuntu -- bash -c "mkdir -p ~/.docker && echo '{\"credsStore\":\"\"}' > ~/.docker/config.json && echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin && cd /opt/go-chat-server && docker compose pull && docker compose up -d && docker logout ghcr.io"
+          max_attempts: 5
+          retry_wait_seconds: 300
+          timeout_minutes: 20
+          command: |
+            ssh -i ~/.ssh/id_ed25519 -p "$LOCAL_PORT" "$LOCAL_USERNAME@$LOCAL_HOST" \
+              'wsl -d Ubuntu -- bash -lc "
+                set -e
+                mkdir -p ~/.docker
+                echo '\''{\"credsStore\":\"\"}'\'' > ~/.docker/config.json
+                echo \"$GITHUB_TOKEN\" | docker login ghcr.io -u \"$GITHUB_ACTOR\" --password-stdin
+                cd /opt/go-chat-server
+                docker compose pull
+                docker compose up -d
+                docker logout ghcr.io
+              "'
