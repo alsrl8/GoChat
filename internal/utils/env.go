@@ -2,10 +2,9 @@ package utils
 
 import "os"
 
-func GetChatPort() string {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
+func GetEnv(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
 	}
-	return port
+	return defaultValue
 }

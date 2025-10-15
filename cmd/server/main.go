@@ -1,16 +1,12 @@
 package main
 
 import (
-	"GoChatServer/internal/playground"
-	"log"
+	"GoChatServer/internal/server"
 )
 
 func main() {
-	err := playground.WriteTextFile()
+	err := server.NewChatServer(":8080").Run()
 	if err != nil {
-		log.Println(err)
 		panic(err)
 	}
-
-	playground.WaitForInterruptSignal()
 }
