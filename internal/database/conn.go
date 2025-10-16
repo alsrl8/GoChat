@@ -6,57 +6,84 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
 
 	_ "github.com/lib/pq"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func ConnectToPostgres() (*sql.DB, error) {
-	host := os.Getenv("LOCAL_SERVER_IP")
-	port := os.Getenv("POSTGRES_PORT")
-	user := os.Getenv("POSTGRES_USER")
-	password := os.Getenv("POSTGRES_PW")
-	dbname := os.Getenv("POSTGRES_DB")
+type Config struct {
+	Host     string
+	Port     string
+	User     string
+	Password string
+	Database string
+}
 
-	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+func getEnv(key, defaultVal string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultVal
+}
+
+func loadPostgresConfig() *Config {
+	return &Config{
+		Host:     getEnv("LOCAL_SERVER_IP", "localhost"),
+		Port:     getEnv("POSTGRES_PORT", "5432"),
+		User:     getEnv("POSTGRES_USER", ""),
+		Password: getEnv("POSTGRES_PW", ""),
+		Database: getEnv("POSTGRES_DB", ""),
+	}
+}
+
+func loadMongoConfig() *Config {
+	return &Config{
+		Host:     getEnv("LOCAL_SERVER_IP", "localhost"),
+		User:     getEnv("MONGO_USER", ""),
+		Password: getEnv("MONGO_PW", ""),
+	}
+}
+
+func ConnectToPostgres() (*sql.DB, error) {
+	cfg := loadPostgresConfig()
+	connStr := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Database,
+	)
 
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		return nil, fmt.Errorf("error connecting to the database: %v", err)
+		return nil, fmt.Errorf("error opening postgres connection: %w", err)
 	}
 
 	if err = db.Ping(); err != nil {
-		return nil, fmt.Errorf("error pinging the database: %v", err)
+		_ = db.Close()
+		return nil, fmt.Errorf("error pinging postgres: %w", err)
 	}
 
-	log.Println("Connected to the database")
-
+	log.Println("Connected to PostgreSQL")
 	return db, nil
 }
+
 func ConnectToMongo() (*mongo.Client, error) {
-	host := os.Getenv("LOCAL_SERVER_IP")
-	username := os.Getenv("MONGO_USER")
-	password := os.Getenv("MONGO_PW")
-
-	uri := fmt.Sprintf("mongodb://%s:%s@%s", username, password, host)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	cfg := loadMongoConfig()
+	uri := fmt.Sprintf("mongodb://%s:%s@%s", cfg.User, cfg.Password, cfg.Host)
+	ctx := context.Background()
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
 	if err != nil {
-		return nil, fmt.Errorf("error connecting to MongoDB: %v", err)
+		return nil, fmt.Errorf("error connecting to MongoDB: %w", err)
 	}
 
-	err = client.Ping(ctx, nil)
-	if err != nil {
-		return nil, fmt.Errorf("error pinging MongoDB: %v", err)
+	if err = client.Ping(ctx, nil); err != nil {
+		err := client.Disconnect(context.Background())
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("error pinging MongoDB: %w", err)
 	}
 
 	log.Println("Connected to MongoDB")
-
 	return client, nil
 }
