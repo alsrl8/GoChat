@@ -20,28 +20,21 @@ type Config struct {
 	Database string
 }
 
-func getEnv(key, defaultVal string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return defaultVal
-}
-
 func loadPostgresConfig() *Config {
 	return &Config{
-		Host:     getEnv("LOCAL_SERVER_IP", "localhost"),
-		Port:     getEnv("POSTGRES_PORT", "5432"),
-		User:     getEnv("POSTGRES_USER", ""),
-		Password: getEnv("POSTGRES_PW", ""),
-		Database: getEnv("POSTGRES_DB", ""),
+		Host:     os.Getenv("LOCAL_SERVER_IP"),
+		Port:     os.Getenv("POSTGRES_PORT"),
+		User:     os.Getenv("POSTGRES_USER"),
+		Password: os.Getenv("POSTGRES_PW"),
+		Database: os.Getenv("POSTGRES_DB"),
 	}
 }
 
 func loadMongoConfig() *Config {
 	return &Config{
-		Host:     getEnv("LOCAL_SERVER_IP", "localhost"),
-		User:     getEnv("MONGO_USER", ""),
-		Password: getEnv("MONGO_PW", ""),
+		Host:     os.Getenv("LOCAL_SERVER_IP"),
+		User:     os.Getenv("MONGO_USER"),
+		Password: os.Getenv("MONGO_PW"),
 	}
 }
 
